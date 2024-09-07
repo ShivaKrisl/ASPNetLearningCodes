@@ -1,11 +1,14 @@
+using ASPNetLearningCodes.MiddleWares;
+using ASPNetLearningCodes.MiddleWares.EmailAndPasswordCustom;
 using ASPNetLearningCodes;
 using Microsoft.Extensions.Primitives;
 using System.Text;
 
+
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddTransient<CustomMiddleWare>();
 var app = builder.Build();
 
-/*
 app.Run(async (HttpContext httpContext) =>
 {
 
@@ -91,9 +94,104 @@ app.Run(async (HttpContext httpContext) =>
     }
 
 });
-*/
-//app.MapGet("/", () => "Hello World!");
 
-CalculatorOperationsRequests.Caluclator(app);
 
+
+//CalculatorOperationsRequests.Caluclator(app);
+
+
+
+// Middlewares execute in the order that you define
+// Use is to add middlewares and call next ; can also used as terminal middleware
+// Run is terminal or short circuiting middleware
+
+// Middleware one
+app.Use(async (HttpContext context, RequestDelegate next) =>
+{
+    await context.Response.WriteAsync("First Middleware - Start \n");
+    await next(context);
+    await context.Response.WriteAsync("First Middleware - End \n");
+});
+
+// Middleware two
+app.Use(async (HttpContext context, RequestDelegate next) =>
+{
+    await context.Response.WriteAsync("Second Middleware - Start \n");
+    await next(context);
+    await context.Response.WriteAsync("Second Middleware - End \n");
+});
+
+// Custom middleware  - if the amount of code you write in middleware is huge or that middleware is used more than once it is better to write your middleware as seperate class
+// 1. First add your class as Service in your builder  -- builder.Services.AddTransient<CustomMiddleWare>();
+// 2. Your class should implement IMiddleware interface that has method InvokeAsync
+// 3. Use that method to write your code, call the next middleware in the pipeline and then write your code
+// 4. In the main program use it as app.UseMiddleware<CustomMiddleWare>();
+app.UseMiddleware<CustomMiddleWare>();
+
+
+// Custom Conventional Middleware
+// 1. Create a class that has a method Invoke that takes HttpContext as parameter and RequestDelegate as parameter
+// 2. In the Invoke method write your code, call the next middleware in the pipeline and then write your code
+// 3. Create an extension method that takes IApplicationBuilder as parameter and returns IApplicationBuilder
+// 4. In the extension method use UseMiddleware<YourClassName> to add your middleware to the pipeline
+// 5. In the main program use it as app.UseCustomConventionalMiddleWare();
+app.UseCustomConventionalMiddleWare();
+
+
+// UseWhen -- use middle ware when only when some conditions are true 
+// Syntax: app.UseWhen(Predicate, Action) -- Predicate is a delegate that takes HttpContext as parameter and returns boolean value
+// Action is a delegate that takes HttpContext and RequestDelegate as parameters -- which executes a middleware
+// Both should be lambda expressions
+app.UseWhen( context => context.Request.Query.ContainsKey("firstname"),
+app =>
+{
+    app.Use(async (HttpContext httpcontext, RequestDelegate next) =>
+    {
+        await httpcontext.Response.WriteAsync("This middleware will be executed only when firstname is present in the query string \n");
+        await next(httpcontext);
+    });
+});
+
+// Middleware three  -- Terminating middleware
+app.Run(async(HttpContext httpContext) =>
+{
+    await httpContext.Response.WriteAsync("Last middleware \n");
+});
+
+
+/// CORRECT ORDER OF MIDDLEWARE  -- these to be defined in the startup.cs file
+/// 1. ExceptionalHandler Middleware
+/// 2. HSTS - Http Strict Transportation Security Middleware
+/// 3. HTTPS Redirection Middleware
+/// 4. Static Files Middleware
+/// 5. Routing Middleware
+/// 6. CORS Middleware
+/// 7. Authentication Middleware
+/// 8. Authorization Middleware
+/// 9. Session Middleware
+/// 10. MapControllers Middleware
+/// 11. Custom Middlewares
+/// 12. Endpoints Middleware
+
+
+
+// Assignment  -- Check email and password in query string and return success or failure when request is post
+app.UseWhen(context => context.Request.Method == "POST",
+    app =>
+    {
+        app.UseCustomMiddleWareForEmailAndPassword();
+    }
+);
+
+app.UseWhen(context => context.Request.Method == "GET",
+    app =>
+    {
+        app.Use(async (httpContext, next) =>
+        {
+            httpContext.Response.StatusCode = 200;
+            await httpContext.Response.WriteAsync("Hello World!");
+            await next(httpContext);
+        });
+    }
+);
 app.Run();
