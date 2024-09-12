@@ -1,0 +1,4 @@
+﻿This is the static file present in the Static Folder. 
+We need to configure them in our Builder Services
+and then we can access them using the URL.
+Now we can access both files of wwwroot and Static Folder files as well

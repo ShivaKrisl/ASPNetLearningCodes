@@ -1,0 +1,4 @@
+﻿This is the static text that need to be served on that request every time called
+
+Hello World
+Welcome to the world of ASP.NET

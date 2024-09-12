@@ -1,0 +1,5 @@
+﻿This is another Static File -- from Other Static Folder
+Configured using
+app.UseStaticFiles(new StaticFileOptions(){
+    FileProvider = new PhysicalFileProvider(Path.Combine(builder.Environment.ContentRootPath , "\\StaticFolder2")),  // This is for Our Other Static Folder 
+});

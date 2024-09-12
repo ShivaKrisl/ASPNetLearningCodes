@@ -1,13 +1,40 @@
 using ASPNetLearningCodes.MiddleWares;
 using ASPNetLearningCodes.MiddleWares.EmailAndPasswordCustom;
 using ASPNetLearningCodes;
-using Microsoft.Extensions.Primitives;
+using Microsoft.Extensions.FileProviders;
 using System.Text;
+using ASPNetLearningCodes.Routing;
+using Microsoft.Extensions.Primitives;
 
 
-var builder = WebApplication.CreateBuilder(args);
+//var builder = WebApplication.CreateBuilder(args);
+
+// For Static Folder Configuration
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions()
+{
+    WebRootPath = "StaticFolder"
+});
+
+
+
 builder.Services.AddTransient<CustomMiddleWare>();
+
+// Adding Custom Routing Constraint
+builder.Services.AddRouting(options =>
+{
+    options.ConstraintMap.Add("monthCheck",typeof(MonthsCustomConstraint));
+});
+
+
 var app = builder.Build();
+
+// For serving static files like html, css, js, images etc
+app.UseStaticFiles(); // This is for our StaticFolder that we have configured in Builder
+
+app.UseStaticFiles(new StaticFileOptions(){
+    FileProvider = new PhysicalFileProvider(Path.Combine(builder.Environment.ContentRootPath , "\\StaticFolder2")),  // This is for Our Other Static Folder 
+});
+
 
 app.Run(async (HttpContext httpContext) =>
 {
@@ -97,7 +124,7 @@ app.Run(async (HttpContext httpContext) =>
 
 
 
-//CalculatorOperationsRequests.Caluclator(app);
+CalculatorOperationsRequests.Caluclator(app);
 
 
 
@@ -194,4 +221,7 @@ app.UseWhen(context => context.Request.Method == "GET",
         });
     }
 );
+
+// Routing
+RoutingMain.MainClassNotes(app);
 app.Run();
