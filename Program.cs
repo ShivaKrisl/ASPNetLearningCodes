@@ -5,6 +5,7 @@ using Microsoft.Extensions.FileProviders;
 using System.Text;
 using ASPNetLearningCodes.Routing;
 using Microsoft.Extensions.Primitives;
+using ASPNetLearningCodes.Controllers;
 
 
 //var builder = WebApplication.CreateBuilder(args);
@@ -16,8 +17,9 @@ var builder = WebApplication.CreateBuilder(new WebApplicationOptions()
 });
 
 
-
+/*
 builder.Services.AddTransient<CustomMiddleWare>();
+builder.Services.AddSingleton<HomeController>();
 
 // Adding Custom Routing Constraint
 builder.Services.AddRouting(options =>
@@ -25,7 +27,7 @@ builder.Services.AddRouting(options =>
     options.ConstraintMap.Add("monthCheck",typeof(MonthsCustomConstraint));
 });
 
-
+// be
 var app = builder.Build();
 
 // For serving static files like html, css, js, images etc
@@ -224,4 +226,9 @@ app.UseWhen(context => context.Request.Method == "GET",
 
 // Routing
 RoutingMain.MainClassNotes(app);
+
+
 app.Run();
+*/ 
+
+ControllersMainClass.ControllerMainNotes(builder);
